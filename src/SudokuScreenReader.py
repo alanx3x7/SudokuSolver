@@ -109,14 +109,16 @@ class SudokuScreenReader:
                 if character != 0 and character.isdigit():
                     self.game_board[i][j] = int(character)
 
+    def clear_for_new_board(self):
+        self.game_board = []
+        self.good_contours = []
+        self.game_board_contours = []
+
     def get_sudoku_board(self, x, y, w, h):
+        self.clear_for_new_board()
         self.take_screenshot(x, y, w, h)
         self.find_original_contours()
         self.fix_straight_lines()
         self.sort_filtered_contours()
         self.read_board_values()
         self.convert_to_numbers()
-
-
-
-
