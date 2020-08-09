@@ -6,7 +6,7 @@ import pytesseract
 pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
 
 # Load image with characteristics
-image = cv2.imread('../data/test_sudoku.jpg')
+image = cv2.imread('../data/test_sudoku_2.jpg')
 image_height, image_width, image_channels = image.shape
 block_size = int(image_width / 9) | 1
 block_min_area = int(image_width / 20 * image_width / 20)
@@ -62,8 +62,8 @@ row = []
 for i, c in enumerate(cnts, 1):
     row.append(c)
     if i % dimension == 0:
-        (cnts, _) = contours.sort_contours(row, method="left-to-right")
-        board.append(cnts)
+        (cntsz, _) = contours.sort_contours(row, method="left-to-right")
+        board.append(cntsz)
         row = []
 
 mask = np.zeros(image.shape, dtype=np.uint8)
