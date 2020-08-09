@@ -118,7 +118,5 @@ class SudokuScreenReader:
         self.convert_to_numbers()
 
 
-if __name__ == "__main__":
-    reader = SudokuScreenReader()
-    reader.get_sudoku_board(220, 320, 450, 450)
+
 
