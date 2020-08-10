@@ -118,13 +118,7 @@ class SudokuSolver(QWidget):
         self.status_text.setText('Solving sudoku puzzle!')
         QApplication.processEvents()
 
-        print(self.reader.game_board)
-
         self.solver.load_board(self.reader.game_board)
-
-        print(self.solver.board)
-        print(self.solver.solution)
-
         self.solver.recursive_solve(0, 0, -1)
         self.grid_values = self.solver.solution
 
@@ -144,8 +138,5 @@ class SudokuSolver(QWidget):
         self.updateMask()
 
     def populate_grid(self):
-
-        print(self.grid_values)
-
         if self.grid_values is not None:
             self.capture_widget.populate_board(self.grid_values)
