@@ -119,7 +119,7 @@ class SudokuSolver(QWidget):
         QApplication.processEvents()
 
         self.solver.load_board(self.reader.game_board)
-        self.solver.recursive_solve(0, 0, -1)
+        self.solver.solve_sudoku()
         self.grid_values = self.solver.solution
 
     def button_solve_clicked(self):

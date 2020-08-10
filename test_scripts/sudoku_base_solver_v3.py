@@ -142,5 +142,12 @@ def main():
     print(col_list)
     print(block_list)
 
+    board = np.zeros((9, 9))
+    for i, row in enumerate(row_list):
+        for j, value in enumerate(row):
+            board[i][j] = int(value)
+
+    print(board)
+
 if __name__ == "__main__":
     main()
