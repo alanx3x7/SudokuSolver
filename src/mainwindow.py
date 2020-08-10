@@ -4,7 +4,7 @@ from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QColor, QFont
-from PyQt5.QtWidgets import QMainWindow, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 
 from BoardWindow import BoardWindow
 from SudokuScreenReader import SudokuScreenReader
@@ -21,6 +21,7 @@ class SudokuSolver(QWidget):
         self.reader = SudokuScreenReader()
         self.solver = SudokuRecursiveSolver()
 
+        self.status_text = None
         self.capture_widget = None
         self.solve_button = None
         self.clear_button = None
@@ -42,16 +43,20 @@ class SudokuSolver(QWidget):
 
         self.main_layout = QtWidgets.QVBoxLayout()
         self.main_layout.setContentsMargins(20, 20, 20, 20)
-        self.setContentsMargins(10, 10, 10, 10)
-
+        self.setContentsMargins(10, 5, 10, 5)
         self.button_layout = QtWidgets.QHBoxLayout()
 
+        self.status_text = QtWidgets.QLabel()
+        self.status_text.setText('Please position window over sudoku on screen!')
+        self.status_text.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.main_layout.addWidget(self.status_text)
+
         self.capture_widget = BoardWindow()
-        # self.capture_widget = QtWidgets.QWidget()
         self.capture_widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.main_layout.addWidget(self.capture_widget)
 
         self.clear_button = QtWidgets.QPushButton('Clear', self)
+        self.clear_button.clicked.connect(self.button_clear_clicked)
         self.button_layout.addWidget(self.clear_button)
 
         self.solve_button = QtWidgets.QPushButton('Solve', self)
@@ -73,7 +78,7 @@ class SudokuSolver(QWidget):
 
         # Centers them about fixed points to align the centers of the window and widget
         windowRect.moveTopLeft(QtCore.QPoint(0, 0))
-        captureRect.moveTopLeft(QtCore.QPoint(30, 30))
+        captureRect.moveTopLeft(QtCore.QPoint(captureRect.left(), captureRect.top()))
 
         # Create the base region mask which includes the frame of the window as well
         region = QtGui.QRegion(windowRect.adjusted(left, top, right, bottom))
@@ -96,7 +101,10 @@ class SudokuSolver(QWidget):
         if not self.dirty:
             self.updateMask()
 
-    def button_solve_clicked(self):
+    def get_sudoku_board_from_screen(self):
+        self.status_text.setText('Reading sudoku board from screen...')
+        QApplication.processEvents()
+
         grabGeometry = self.capture_widget.geometry()
         grabGeometry.moveTopLeft(self.capture_widget.mapToGlobal(QtCore.QPoint(0, 0)))
         x = grabGeometry.left()
@@ -104,18 +112,35 @@ class SudokuSolver(QWidget):
         w = grabGeometry.width()
         h = grabGeometry.height()
 
-        print("Reading board!")
         self.reader.get_sudoku_board(x, y, w, h)
+
+    def solve_loaded_sudoku_board(self):
+        self.status_text.setText('Solving sudoku puzzle!')
+        QApplication.processEvents()
+
+        print(self.reader.game_board)
+
         self.solver.load_board(self.reader.game_board)
+
         print(self.solver.board)
-        print("Solving board!")
-        self.solver.recursive_solve(0, 0, -1)
         print(self.solver.solution)
 
+        self.solver.recursive_solve(0, 0, -1)
         self.grid_values = self.solver.solution
-        self.populate_grid()
 
+    def button_solve_clicked(self):
+        self.get_sudoku_board_from_screen()
+        self.solve_loaded_sudoku_board()
+        self.populate_grid()
         self.screen_capture_enabled = False
+        self.updateMask()
+
+        self.status_text.setText('Solution to sudoku puzzle')
+        QApplication.processEvents()
+
+    def button_clear_clicked(self):
+        self.grid_values = None
+        self.screen_capture_enabled = True
         self.updateMask()
 
     def populate_grid(self):

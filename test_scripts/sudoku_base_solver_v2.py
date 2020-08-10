@@ -31,10 +31,13 @@ def has_valid_sudoku_constraints(board, x, y, candidate):
 
 def is_valid_board(board, x, y, candidate):
 
+    if candidate == -1:
+        return True
+
     if not has_valid_sudoku_constraints(board, x, y, candidate):
         return False
 
-    board[x, y] = max(candidate, 0)
+    board[x, y] = candidate
 
     return True
 
@@ -50,10 +53,15 @@ def recursive_solve(board, x, y, candidate):
             if board[i, j] != 0:
                 continue
 
+            #print("Cell: " + str(i) + ", " + str(j))
+
             for candidate in range(1, 10):
+                #print(candidate, end=" ")
                 if recursive_solve(board, i, j, candidate) is not None:
                     return True
             board[i, j] = 0
+
+            #print()
             return None
 
     return True
@@ -83,6 +91,17 @@ def main():
     # board[6, :] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
     # board[7, :] = [0, 1, 0, 0, 2, 0, 5, 7, 0]
     # board[8, :] = [0, 0, 0, 7, 9, 5, 0, 0, 0]
+
+    # Board ID: 3x3 Sudoku Advanced Puzzle ID: 47,641,703
+    board[0, :] = [3, 0, 0, 0, 0, 0, 0, 0, 6]
+    board[1, :] = [0, 0, 7, 0, 0, 6, 5, 0, 0]
+    board[2, :] = [0, 4, 0, 0, 0, 0, 0, 0, 0]
+    board[3, :] = [0, 0, 0, 1, 5, 0, 0, 0, 0]
+    board[4, :] = [0, 0, 0, 2, 0, 0, 7, 0, 4]
+    board[5, :] = [0, 2, 0, 0, 0, 0, 1, 3, 0]
+    board[6, :] = [0, 9, 0, 0, 8, 7, 0, 6, 2]
+    board[7, :] = [0, 0, 0, 0, 0, 9, 8, 5, 0]
+    board[8, :] = [5, 0, 0, 0, 6, 0, 3, 0, 0]
 
     print(board)
     start = time.time()

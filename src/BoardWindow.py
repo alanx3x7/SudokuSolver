@@ -71,8 +71,6 @@ class BoardWindow(QWidget):
         for i, rows in enumerate(grid):
             for j, value in enumerate(rows):
 
-                print(value)
-
                 if value == 0:
                     continue
 

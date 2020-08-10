@@ -44,6 +44,9 @@ class SudokuRecursiveSolver:
 
     def is_valid_board(self, x, y, candidate):
 
+        if candidate == -1:
+            return True
+
         if not self.has_valid_sudoku_constraints(x, y, candidate):
             return False
 
