@@ -1,5 +1,6 @@
 from SudokuRecursiveSolver import SudokuRecursiveSolver
 from SudokuScreenReader import SudokuScreenReader
+from SudokuScreenWriter import SudokuScreenWriter
 
 if __name__ == "__main__":
     reader = SudokuScreenReader()
@@ -12,3 +13,8 @@ if __name__ == "__main__":
     print(solver.board)
     solver.solve_sudoku()
     print(solver.solution)
+
+    writer = SudokuScreenWriter()
+    writer.load_solution_board(220, 320, solver.solution, reader.game_board_contours)
+    writer.find_game_board_centers()
+    writer.write_in_sudoku()

@@ -1,4 +1,6 @@
 import sys
+import numpy as np
+import pyautogui
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 from PyQt5 import QtWidgets
@@ -8,6 +10,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 
 from BoardWindow import BoardWindow
 from SudokuScreenReader import SudokuScreenReader
+from SudokuScreenWriter import SudokuScreenWriter
 from SudokuRecursiveSolver import SudokuRecursiveSolver
 
 
@@ -19,24 +22,33 @@ class SudokuSolver(QWidget):
         super(SudokuSolver, self).__init__(parent)
 
         self.reader = SudokuScreenReader()
+        self.writer = SudokuScreenWriter()
         self.solver = SudokuRecursiveSolver()
 
         self.status_text = None
         self.capture_widget = None
         self.solve_button = None
         self.clear_button = None
+        self.fill_button = None
         self.button_layout = None
         self.main_layout = None
         self.grid_values = None
+        self.sudoku_image = None
+        self.main_stack = None
+        self.loading_label = None
 
         self.setWindowTitle('Sudoku Solver')
         self.setGeometry(300, 300, 600, 600)
         self.setWindowIcon(QtGui.QIcon('../data/sudoku_solver_icon.png'))
+        self.stack_layer = 0
+        self.image_corner_x = None
+        self.image_corner_y = None
 
         self.screen_capture_enabled = True
 
         self.initUI()
         self.setLayout(self.main_layout)
+
         self.show()
 
     def initUI(self):
@@ -51,9 +63,16 @@ class SudokuSolver(QWidget):
         self.status_text.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         self.main_layout.addWidget(self.status_text)
 
+        self.main_stack = QtWidgets.QStackedWidget(self)
+
         self.capture_widget = BoardWindow()
         self.capture_widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        self.main_layout.addWidget(self.capture_widget)
+
+        self.sudoku_image = QtWidgets.QLabel(self)
+        self.main_stack.addWidget(self.capture_widget)
+        self.main_stack.addWidget(self.sudoku_image)
+        self.main_stack.setCurrentIndex(self.stack_layer)
+        self.main_layout.addWidget(self.main_stack)
 
         self.clear_button = QtWidgets.QPushButton('Clear', self)
         self.clear_button.clicked.connect(self.button_clear_clicked)
@@ -63,12 +82,20 @@ class SudokuSolver(QWidget):
         self.solve_button.clicked.connect(self.button_solve_clicked)
         self.button_layout.addWidget(self.solve_button)
 
+        self.fill_button = QtWidgets.QPushButton('Fill', self)
+        self.fill_button.clicked.connect(self.button_fill_clicked)
+        self.button_layout.addWidget(self.fill_button)
+
+        self.loading_label = QtWidgets.QLabel(self)
+        self.loading_label.setText('Reading numbers from image...')
+        self.loading_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+
         self.main_layout.addLayout(self.button_layout)
 
     def updateMask(self):
         # Get the frame and widget geometries
         windowRect = self.geometry()
-        captureRect = self.capture_widget.geometry()
+        captureRect = self.main_stack.geometry()
 
         # Define the frame margins based on the frame size of the window
         left = self.frameGeometry().left() - windowRect.left() - 3
@@ -98,8 +125,45 @@ class SudokuSolver(QWidget):
     def resizeEvent(self, event):
         super(SudokuSolver, self).resizeEvent(event)
         # the first resizeEvent is called before any first-time showEvent and paintEvent
+
+        center = self.capture_widget.geometry().center()
+        self.loading_label.setGeometry(center.x() - 80, center.y(), 230, 40)
+
         if not self.dirty:
             self.updateMask()
+
+    def display_loading_screen(self, x, y, w, h):
+
+        # Take a screenshot of what's in the window, and convert it to an OpenCV Image
+        im1 = pyautogui.screenshot(region=(x, y, w, h))
+        open_cv_image = np.array(im1)
+
+        # Convert OpenCV Image to QImage to set as QPixMap
+        height, width, channel = open_cv_image.shape
+        bytesPerLine = 3 * width
+        qImg = QtGui.QImage(open_cv_image.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+        self.sudoku_image.setPixmap(QtGui.QPixmap(qImg))
+
+        # Set the opacity level to be slightly transparent
+        op = QtWidgets.QGraphicsOpacityEffect(self.sudoku_image)
+        op.setOpacity(0.3)
+        self.sudoku_image.setGraphicsEffect(op)
+
+        # Set the stack to display the image
+        self.stack_layer = 1
+        self.main_stack.setCurrentIndex(self.stack_layer)
+
+        # Make sure that the loading text QLabel is centered and visible
+        center = self.capture_widget.geometry().center()
+        self.loading_label.setGeometry(center.x() - 80, center.y(), 230, 40)
+        self.loading_label.setVisible(True)
+
+        # Disable the mask to display the captured sudoku image
+        self.screen_capture_enabled = False
+        self.updateMask()
+        QApplication.processEvents()
+
+        return open_cv_image
 
     def get_sudoku_board_from_screen(self):
         self.status_text.setText('Reading sudoku board from screen...')
@@ -112,11 +176,18 @@ class SudokuSolver(QWidget):
         w = grabGeometry.width()
         h = grabGeometry.height()
 
-        self.reader.get_sudoku_board(x, y, w, h)
+        self.image_corner_x = x
+        self.image_corner_y = y
+
+        open_cv_image = self.display_loading_screen(x, y, w, h)
+        self.reader.get_sudoku_board(x, y, w, h, open_cv_image)
 
     def solve_loaded_sudoku_board(self):
+        self.loading_label.setVisible(False)
         self.status_text.setText('Solving sudoku puzzle!')
         QApplication.processEvents()
+
+        print(self.reader.game_board)
 
         self.solver.load_board(self.reader.game_board)
         self.solver.solve_sudoku()
@@ -126,16 +197,33 @@ class SudokuSolver(QWidget):
         self.get_sudoku_board_from_screen()
         self.solve_loaded_sudoku_board()
         self.populate_grid()
-        self.screen_capture_enabled = False
-        self.updateMask()
+        self.stack_layer = 0
+        self.main_stack.setCurrentIndex(self.stack_layer)
 
         self.status_text.setText('Solution to sudoku puzzle')
         QApplication.processEvents()
 
     def button_clear_clicked(self):
+        self.stack_layer = 1
+        self.main_stack.setCurrentIndex(self.stack_layer)
         self.grid_values = None
+        self.image_corner_x = None
+        self.image_corner_y = None
         self.screen_capture_enabled = True
         self.updateMask()
+        self.status_text.setText('Please position window over sudoku on screen!')
+
+    def button_fill_clicked(self):
+        if self.image_corner_x is None or self.image_corner_y is None:
+            return
+        self.screen_capture_enabled = True
+        self.updateMask()
+        self.writer.load_solution_board(self.image_corner_x, self.image_corner_y,
+                                        self.solver.solution, self.reader.game_board_contours)
+        self.writer.find_game_board_centers()
+        self.writer.write_in_sudoku()
+        self.setFocus(True)
+        self.button_clear_clicked()
 
     def populate_grid(self):
         if self.grid_values is not None:

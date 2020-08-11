@@ -34,9 +34,13 @@ class SudokuScreenReader:
         # Pytesseract settings
         self.pytesseract_config = '-c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyz --psm 10'
 
-    def take_screenshot(self, x, y, w, h):
-        im1 = pyautogui.screenshot(region=(x, y, w, h))
-        open_cv_image = np.array(im1)
+        # Common mis-recognitions for pytesseract
+        self.replacements = {'be': '5', 'Cc': 'C', 'Rg': '8', 'i': '1'}
+
+    def take_screenshot(self, x, y, w, h, open_cv_image=None):
+        if open_cv_image is None:
+            im1 = pyautogui.screenshot(region=(x, y, w, h))
+            open_cv_image = np.array(im1)
         self.image = open_cv_image[:, :, ::-1].copy()
         self.get_image_characteristics()
 
@@ -100,7 +104,10 @@ class SudokuScreenReader:
                 if np.average(cropped_image) > 253:
                     board_row.append(0)
                 else:
-                    board_row.append(pytesseract.image_to_string(cropped_image, config=self.pytesseract_config))
+                    character = pytesseract.image_to_string(cropped_image, config=self.pytesseract_config)
+                    if character in self.replacements:
+                        character = self.replacements[character]
+                    board_row.append(character)
             self.game_board.append(board_row)
 
     def convert_to_numbers(self):
@@ -114,9 +121,9 @@ class SudokuScreenReader:
         self.good_contours = []
         self.game_board_contours = []
 
-    def get_sudoku_board(self, x, y, w, h):
+    def get_sudoku_board(self, x, y, w, h, open_cv_image=None):
         self.clear_for_new_board()
-        self.take_screenshot(x, y, w, h)
+        self.take_screenshot(x, y, w, h, open_cv_image)
         self.find_original_contours()
         self.fix_straight_lines()
         self.sort_filtered_contours()
