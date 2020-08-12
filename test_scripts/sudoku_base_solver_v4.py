@@ -1,10 +1,11 @@
-# Uses string based model for row, column, and block comparisons
+# Tries to optimize guessing by sorting cells by most seen in row, col, and block
+# Much slower than version 3 unfortunately
 
 import time
 import numpy as np
 
 
-class SudokuRecursiveSolver3:
+class SudokuRecursiveSolver4:
 
     def __init__(self):
         self.rows = 0
@@ -17,6 +18,8 @@ class SudokuRecursiveSolver3:
         self.row_list = None
         self.col_list = None
         self.block_list = None
+        self.priority_grid = None
+        self.priority_list = []
 
     def load_board(self, game_board, block_size=3):
         self.board = np.array(game_board)
@@ -25,6 +28,26 @@ class SudokuRecursiveSolver3:
         self.block_size = block_size
         self.blocks_across = int(self.rows / self.block_size)
         self.convert_board_to_string_list()
+        self.get_priority_list()
+
+    def get_priority_list(self):
+        self.priority_grid = np.zeros((self.rows, self.cols))
+        for i in range(self.rows):
+            for j in range(self.cols):
+                if self.board[i][j] == 0:
+                    row_count = np.count_nonzero(self.board[i, :])
+                    col_count = np.count_nonzero(self.board[:, j])
+                    row_block = (i // 3) * 3
+                    col_block = (j // 3) * 3
+                    block_count = np.count_nonzero(self.board[row_block:row_block + 3, col_block:col_block + 3])
+                    self.priority_grid[i][j] = row_count + col_count + block_count
+
+        # print(self.priority_grid)
+        max_to_min = np.argsort(self.priority_grid, axis=None)#[::-1]
+        for i in range(len(max_to_min)):
+            x = max_to_min[i] // self.rows
+            y = max_to_min[i] % self.cols
+            self.priority_list.append([x, y])
 
     def convert_board_to_string_list(self):
 
@@ -87,17 +110,16 @@ class SudokuRecursiveSolver3:
         if not self.is_valid_board(x, y, candidate):
             return None
 
-        for i in range(self.rows):
-            for j in range(self.cols):
+        for i, j in self.priority_list:
 
-                if self.row_list[i][j] != '0':
-                    continue
+            if self.row_list[i][j] != '0':
+                continue
 
-                for candidate in ['1', '2', '3', '4', '5', '6', '7', '8', '9']:
-                    if self.recursive_solve(i, j, candidate) is not None:
-                        return True
-                self.insert_candidate_into_lists(i, j, '0')
-                return None
+            for candidate in ['1', '2', '3', '4', '5', '6', '7', '8', '9']:
+                if self.recursive_solve(i, j, candidate) is not None:
+                    return True
+            self.insert_candidate_into_lists(i, j, '0')
+            return None
 
         return True
 
