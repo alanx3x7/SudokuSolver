@@ -40,6 +40,13 @@ def test_with_board():
 
 if __name__ == "__main__":
     solver = SudokuRecursiveSolver5()
-    solver.load_board(board[2])
-    solver.solve_sudoku()
+    solver.load_board(board[6])
+    solver.get_candidate_list()
+    while solver.solve_naked_singles():
+        print("o")
+    solver.solve_hidden_sets()
+    solver.solve_pointing_sets()
+    solver.solve_pointing_sets()
+    print(solver.candidate_list)
+    # solver.solve_sudoku()
     # test_with_board()

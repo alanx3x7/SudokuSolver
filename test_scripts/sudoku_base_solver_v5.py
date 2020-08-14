@@ -11,7 +11,8 @@ binary_to_real = {
     64: 3,      128: 2,     256: 1
 }
 
-
+binary_rep = [0b100000000, 0b010000000, 0b001000000, 0b000100000, 0b000010000, 0b000001000, 0b000000100,
+              0b000000010, 0b000000001]
 
 
 class SudokuRecursiveSolver5:
@@ -106,6 +107,16 @@ class SudokuRecursiveSolver5:
                 if bin(self.candidate_list[i][j]).count("1") == 1:
                     self.insert_value_and_update_candidate_list(self.candidate_list[i][j], i, j)
                     modified_board = True
+        return modified_board
+
+    def solve_hidden_sets(self):
+        modified_board = False
+        for i in range(1, 9):
+            row_change = self.solve_hidden_sets_rows(i)
+            col_change = self.solve_hidden_sets_cols(i)
+            block_change = self.solve_hidden_sets_blocks(i)
+            if row_change or col_change or block_change:
+                modified_board = True
         return modified_board
 
     def solve_hidden_sets_rows(self, hidden_rate):
@@ -203,40 +214,58 @@ class SudokuRecursiveSolver5:
 
         return modified_board
 
+    def solve_pointing_sets(self):
+        modified_board = False
+        for x in range(3):
+            for y in range(3):
+                block_candidate_list = np.reshape(self.candidate_list[x * 3: x * 3 + 3, y * 3: y * 3 + 3], (1, 9))[0]
+
+                for num in binary_rep:
+                    block_reps = 0b0
+                    for candidate in block_candidate_list:
+                        block_reps = block_reps << 1
+                        if candidate & num > 0:
+                            block_reps = block_reps | 0b1
+                    if block_reps == 0b110000000 or block_reps == 0b111000000 or block_reps == 0b011000000 or block_reps == 0b101000000:
+                        modified_board = self.eliminate_pointing_row(x, y, num, 0)
+                    elif block_reps == 0b000110000 or block_reps == 0b000111000 or block_reps == 0b000011000 or block_reps == 0b000101000:
+                        modified_board = self.eliminate_pointing_row(x, y, num, 1)
+                    elif block_reps == 0b000000110 or block_reps == 0b000000111 or block_reps == 0b000000011 or block_reps == 0b000000101:
+                        modified_board = self.eliminate_pointing_row(x, y, num, 2)
+                    elif block_reps == 0b100100000 or block_reps == 0b100100100 or block_reps == 0b000100100 or block_reps == 0b100000100:
+                        modified_board = self.eliminate_pointing_col(x, y, num, 0)
+                    elif block_reps == 0b010010000 or block_reps == 0b010010010 or block_reps == 0b000010010 or block_reps == 0b010000010:
+                        modified_board = self.eliminate_pointing_col(x, y, num, 1)
+                    elif block_reps == 0b001001000 or block_reps == 0b001001001 or block_reps == 0b000001001 or block_reps == 0b001000001:
+                        modified_board = self.eliminate_pointing_col(x, y, num, 2)
+        return modified_board
+
+    def eliminate_pointing_row(self, x, y, candidate, sub_row_num):
+        print("Block (" + str(x) + ", " + str(y) + ") sub row " + str(sub_row_num) + " number: " + str(candidate))
+        row_num = (x * 3) + sub_row_num
+        col_num = [y * 3, y * 3 + 1, y * 3 + 2]
+        for j, cell in enumerate(self.candidate_list[row_num, :]):
+            if j not in col_num:
+                self.candidate_list[row_num, j] = cell & (~candidate & 0b111111111)
+        return True
+
+    def eliminate_pointing_col(self, x, y, candidate, sub_col_num):
+        print("Block (" + str(x) + ", " + str(y) + ") sub col " + str(sub_col_num) + " number: " + str(candidate))
+        row_num = [x * 3, x * 3 + 1, x * 3 + 2]
+        col_num = (y * 3) + sub_col_num
+        for i, cell in enumerate(self.candidate_list[:, col_num]):
+            if i not in row_num:
+                self.candidate_list[i, col_num] = cell & (~candidate & 0b111111111)
+        return True
+
     def solve_sudoku(self):
-
-        start2 = time.time()
-
+        start = time.time()
         self.get_candidate_list()
-
         while np.count_nonzero(self.board) < 81:
             while self.solve_naked_singles():
                 print("o")
-            for i in range(1, 9):
-                self.solve_hidden_sets_rows(i)
-                self.solve_hidden_sets_cols(i)
-                self.solve_hidden_sets_blocks(i)
-
-        print(time.time() - start2)
-
+            self.solve_hidden_sets()
+        print(time.time() - start)
         print(self.board)
-
         return
 
-        print(self.board)
-        print(np.count_nonzero(self.board))
-        print(self.candidate_list)
-        while self.solve_naked_singles():
-            print("o")
-        # self.solve_hidden_row_single()
-        # self.solve_hidden_col_single()
-        print(self.board)
-        print(self.candidate_list)
-        start = time.time()
-        for i in range(1, 9):
-            # self.solve_hidden_sets_rows(i)
-            # self.solve_hidden_sets_cols(i)
-            self.solve_hidden_sets_blocks(i)
-        print(time.time() - start)
-        print(self.candidate_list)
-        print(self.board)
