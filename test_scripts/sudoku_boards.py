@@ -2,6 +2,20 @@ import numpy as np
 
 board = []
 
+# Board ID: Sudoku Solver X-Wing Example 1
+board0 = np.zeros((9, 9))
+board0[0, :] = [1, 0, 0, 0, 0, 0, 5, 6, 9]
+board0[1, :] = [4, 9, 2, 0, 5, 6, 1, 0, 8]
+board0[2, :] = [0, 5, 6, 1, 0, 9, 2, 4, 0]
+board0[3, :] = [0, 0, 9, 6, 4, 0, 8, 0, 1]
+board0[4, :] = [0, 6, 4, 0, 1, 0, 0, 0, 0]
+board0[5, :] = [2, 1, 8, 0, 3, 5, 6, 0, 4]
+board0[6, :] = [0, 4, 0, 5, 0, 0, 0, 1, 6]
+board0[7, :] = [9, 0, 5, 0, 6, 1, 4, 0, 2]
+board0[8, :] = [6, 2, 1, 0, 0, 0, 0, 0, 5]
+board.append(board0)
+
+
 # Board ID: 3x3 Sudoku Advanced Puzzle ID: 47,641,703
 board1 = np.zeros((9, 9))
 board1[0, :] = [0, 8, 5, 0, 9, 0, 0, 0, 2]

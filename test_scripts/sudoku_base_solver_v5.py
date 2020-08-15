@@ -315,17 +315,85 @@ class SudokuRecursiveSolver5:
             self.candidate_list[x * 3: x * 3 + 3, y * 3: y * 3 + 3] = np.reshape(block_candidate_list, (3, 3))
         return
 
+    def solve_x_sword_jelly(self):
+        candidate_list_copy = self.candidate_list.copy()
+        self.solve_x_sword_jelly_row()
+        self.solve_x_sword_jelly_col()
+        return not np.array_equal(candidate_list_copy, self.candidate_list)
+
     def solve_x_sword_jelly_row(self):
         for num in binary_rep:
-
+            x_sword_jelly_list = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0])
             for i, row in enumerate(self.candidate_list):
-                
+                base = 0b0
+                for j, cell in enumerate(row):
+                    base = base << 1
+                    if cell & num > 0:
+                        base = base | 0b1
+                x_sword_jelly_list[i] = base
 
+            non_zeros = np.where(x_sword_jelly_list != 0)[0]
 
-            for comb in list(combinations(non_zeros, hidden_rate)):
-                base = 0b000000000
-                for cell in comb:
-                    base = base | block_candidate_list[cell]
+            for hidden_rate in [2, 3, 4]:
+
+                if len(non_zeros) <= hidden_rate:
+                    continue
+
+                col_cells = None
+                row_cells = None
+                for comb in list(combinations(non_zeros, hidden_rate)):
+                    base = 0b000000000
+                    for row in comb:
+                        base = base | x_sword_jelly_list[row]
+                    if bin(base).count("1") == hidden_rate:
+                        col_cells = base
+                        row_cells = comb
+                        print("Found X Wing size " + str(hidden_rate) + " for num " + str(num) + " in rows " + str(row_cells) + " in cols " + str(format(base, '09b')))
+                        break
+
+                if col_cells is not None and row_cells is not None:
+                    for j, col in enumerate(binary_rep):
+                        if col & col_cells > 0:
+                            for i in range(self.rows):
+                                if i not in row_cells:
+                                    self.candidate_list[i][j] = self.candidate_list[i][j] & (~num & 0b111111111)
+
+    def solve_x_sword_jelly_col(self):
+        for num in binary_rep:
+            x_sword_jelly_list = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0])
+            for i, col in enumerate(self.candidate_list.transpose()):
+                base = 0b0
+                for j, cell in enumerate(col):
+                    base = base << 1
+                    if cell & num > 0:
+                        base = base | 0b1
+                x_sword_jelly_list[i] = base
+
+            non_zeros = np.where(x_sword_jelly_list != 0)[0]
+
+            for hidden_rate in [2, 3, 4]:
+
+                if len(non_zeros) <= hidden_rate:
+                    continue
+
+                col_cells = None
+                row_cells = None
+                for comb in list(combinations(non_zeros, hidden_rate)):
+                    base = 0b000000000
+                    for col in comb:
+                        base = base | x_sword_jelly_list[col]
+                    if bin(base).count("1") == hidden_rate:
+                        row_cells = base
+                        col_cells = comb
+                        print("Found X Wing size " + str(hidden_rate) + " for num " + str(num) + " in cols " + str(col_cells) + " in rows " + str(format(base, '09b')))
+                        break
+
+                if row_cells is not None and col_cells is not None:
+                    for i, row in enumerate(binary_rep):
+                        if row & row_cells > 0:
+                            for j in range(self.cols):
+                                if j not in col_cells:
+                                    self.candidate_list[i][j] = self.candidate_list[i][j] & (~num & 0b111111111)
 
     def solve_sudoku(self):
         start = time.time()
