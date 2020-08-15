@@ -23,3 +23,7 @@ http://zetcode.com/gui/pyqt5/firstprograms/
 
 Build as exe?
 https://build-system.fman.io/pyqt5-tutorial
+
+TODO:
+- Stop crashing when reading invalid board
+- Disable fill button until we have a valid solution on screen

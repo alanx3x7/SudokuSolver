@@ -538,5 +538,7 @@ class SudokuRecursiveSolver:
                 break
         if not is_using_recursion:
             self.solution = self.board.copy()
+        if np.count_nonzero(self.solution) < 81:
+            return False
         print(time.time() - start)
-        return
+        return True

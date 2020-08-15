@@ -35,7 +35,7 @@ class SudokuScreenReader:
         self.pytesseract_config = '-c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyz --psm 10'
 
         # Common mis-recognitions for pytesseract
-        self.replacements = {'be': '5', 'Cc': 'C', 'Rg': '8', 'i': '1'}
+        self.replacements = {'be': '5', 'Cc': 'C', 'Rg': '8', 'i': '1', '':'9'}
 
     def take_screenshot(self, x, y, w, h, open_cv_image=None):
         if open_cv_image is None:

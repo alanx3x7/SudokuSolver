@@ -190,7 +190,8 @@ class SudokuSolver(QWidget):
         print(self.reader.game_board)
 
         self.solver.load_board(self.reader.game_board)
-        self.solver.solve_sudoku()
+        has_solution = self.solver.solve_sudoku()
+        self.capture_widget.valid_board(has_solution)
         self.grid_values = self.solver.solution
 
     def button_solve_clicked(self):
@@ -198,6 +199,7 @@ class SudokuSolver(QWidget):
         self.solve_loaded_sudoku_board()
         self.populate_grid()
         self.stack_layer = 0
+        self.sudoku_image.clear()
         self.main_stack.setCurrentIndex(self.stack_layer)
 
         self.status_text.setText('Solution to sudoku puzzle')
