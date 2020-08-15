@@ -399,10 +399,18 @@ class SudokuRecursiveSolver5:
         start = time.time()
         self.get_candidate_list()
         while np.count_nonzero(self.board) < 81:
-            while self.solve_naked_singles():
-                print("o")
-            self.solve_hidden_sets()
+            if self.solve_naked_singles():
+                continue
+            elif self.solve_hidden_sets():
+                continue
+            elif self.solve_pointing_sets():
+                continue
+            elif self.solve_box_line_reduction():
+                continue
+            elif self.solve_x_sword_jelly():
+                continue
+            else:
+                break
         print(time.time() - start)
-        print(self.board)
         return
 
