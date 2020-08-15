@@ -1,4 +1,4 @@
-# Solves via heuristics
+# Introduces heuristic approaches to decrease the number of paths for recursive solving
 
 import time
 import numpy as np
@@ -15,6 +15,14 @@ binary_rep = [0b100000000, 0b010000000, 0b001000000, 0b000100000, 0b000010000, 0
               0b000000010, 0b000000001]
 
 
+def binary_string_to_candidates(binary):
+    candidates = ""
+    for i, rep in enumerate(binary_rep):
+        if binary & rep > 0:
+            candidates += str(i + 1)
+    return candidates
+
+
 class SudokuRecursiveSolver5:
 
     def __init__(self):
@@ -29,6 +37,7 @@ class SudokuRecursiveSolver5:
         self.col_list = None
         self.block_list = None
         self.candidate_list = None
+        self.candidate_string_list = None
 
     def load_board(self, game_board, block_size=3):
         self.board = np.array(game_board)
@@ -85,6 +94,10 @@ class SudokuRecursiveSolver5:
 
                 self.candidate_list[i][j] = valid_candidates
 
+###################################################################################################
+###################################################################################################
+###################################################################################################
+
     def insert_value_and_update_candidate_list(self, binary_value, x, y):
         decimal_value = binary_to_real[binary_value]
         self.board[x][y] = decimal_value
@@ -108,6 +121,10 @@ class SudokuRecursiveSolver5:
                     self.insert_value_and_update_candidate_list(self.candidate_list[i][j], i, j)
                     modified_board = True
         return modified_board
+
+###################################################################################################
+###################################################################################################
+###################################################################################################
 
     def solve_hidden_sets(self):
         candidate_list_copy = self.candidate_list.copy()
@@ -193,7 +210,8 @@ class SudokuRecursiveSolver5:
                     if bin(base).count("1") == hidden_rate:
                         values = base
                         block_cells = comb
-                        print("Found number: " + str(bin(base)) + " in position " + str(comb) + " in block " + str(x) + ", " + str(y))
+                        print("Found number: " + str(bin(base)) + " in position " + str(comb) + " in block " +
+                              str(x) + ", " + str(y))
                         break
 
                 if values is not None and block_cells is not None:
@@ -203,6 +221,10 @@ class SudokuRecursiveSolver5:
                     self.candidate_list[x * 3: x * 3 + 3, y * 3: y * 3 + 3] = np.reshape(block_candidate_list, (3, 3))
         return
 
+###################################################################################################
+###################################################################################################
+###################################################################################################
+
     def solve_pointing_sets(self):
         candidate_list_copy = self.candidate_list.copy()
         for x in range(3):
@@ -210,22 +232,22 @@ class SudokuRecursiveSolver5:
                 block_candidate_list = np.reshape(self.candidate_list[x * 3: x * 3 + 3, y * 3: y * 3 + 3], (1, 9))[0]
 
                 for num in binary_rep:
-                    block_reps = 0b0
+                    b_rep = 0b0
                     for candidate in block_candidate_list:
-                        block_reps = block_reps << 1
+                        b_rep = b_rep << 1
                         if candidate & num > 0:
-                            block_reps = block_reps | 0b1
-                    if block_reps == 0b110000000 or block_reps == 0b111000000 or block_reps == 0b011000000 or block_reps == 0b101000000:
+                            b_rep = b_rep | 0b1
+                    if b_rep == 0b110000000 or b_rep == 0b111000000 or b_rep == 0b011000000 or b_rep == 0b101000000:
                         self.eliminate_pointing_row(x, y, num, 0)
-                    elif block_reps == 0b000110000 or block_reps == 0b000111000 or block_reps == 0b000011000 or block_reps == 0b000101000:
+                    elif b_rep == 0b000110000 or b_rep == 0b000111000 or b_rep == 0b000011000 or b_rep == 0b000101000:
                         self.eliminate_pointing_row(x, y, num, 1)
-                    elif block_reps == 0b000000110 or block_reps == 0b000000111 or block_reps == 0b000000011 or block_reps == 0b000000101:
+                    elif b_rep == 0b000000110 or b_rep == 0b000000111 or b_rep == 0b000000011 or b_rep == 0b000000101:
                         self.eliminate_pointing_row(x, y, num, 2)
-                    elif block_reps == 0b100100000 or block_reps == 0b100100100 or block_reps == 0b000100100 or block_reps == 0b100000100:
+                    elif b_rep == 0b100100000 or b_rep == 0b100100100 or b_rep == 0b000100100 or b_rep == 0b100000100:
                         self.eliminate_pointing_col(x, y, num, 0)
-                    elif block_reps == 0b010010000 or block_reps == 0b010010010 or block_reps == 0b000010010 or block_reps == 0b010000010:
+                    elif b_rep == 0b010010000 or b_rep == 0b010010010 or b_rep == 0b000010010 or b_rep == 0b010000010:
                         self.eliminate_pointing_col(x, y, num, 1)
-                    elif block_reps == 0b001001000 or block_reps == 0b001001001 or block_reps == 0b000001001 or block_reps == 0b001000001:
+                    elif b_rep == 0b001001000 or b_rep == 0b001001001 or b_rep == 0b000001001 or b_rep == 0b001000001:
                         self.eliminate_pointing_col(x, y, num, 2)
         return not np.array_equal(candidate_list_copy, self.candidate_list)
 
@@ -247,6 +269,10 @@ class SudokuRecursiveSolver5:
                 self.candidate_list[i, col_num] = cell & (~candidate & 0b111111111)
         return
 
+###################################################################################################
+###################################################################################################
+###################################################################################################
+
     def solve_box_line_reduction(self):
         candidate_list_copy = self.candidate_list.copy()
         self.solve_box_line_reduction_row()
@@ -256,16 +282,16 @@ class SudokuRecursiveSolver5:
     def solve_box_line_reduction_row(self):
         for i, row in enumerate(self.candidate_list):
             for num in binary_rep:
-                row_reps = 0b0
+                r_reps = 0b0
                 for candidate in row:
-                    row_reps = row_reps << 1
+                    r_reps = r_reps << 1
                     if candidate & num > 0:
-                        row_reps = row_reps | 0b1
-                if row_reps == 0b110000000 or row_reps == 0b111000000 or row_reps == 0b011000000 or row_reps == 0b101000000:
+                        r_reps = r_reps | 0b1
+                if r_reps == 0b110000000 or r_reps == 0b111000000 or r_reps == 0b011000000 or r_reps == 0b101000000:
                     self.eliminate_box_row(i, num, 0)
-                elif row_reps == 0b000110000 or row_reps == 0b000111000 or row_reps == 0b000011000 or row_reps == 0b000101000:
+                elif r_reps == 0b000110000 or r_reps == 0b000111000 or r_reps == 0b000011000 or r_reps == 0b000101000:
                     self.eliminate_box_row(i, num, 1)
-                elif row_reps == 0b000000110 or row_reps == 0b000000111 or row_reps == 0b000000011 or row_reps == 0b000000101:
+                elif r_reps == 0b000000110 or r_reps == 0b000000111 or r_reps == 0b000000011 or r_reps == 0b000000101:
                     self.eliminate_box_row(i, num, 2)
         return
 
@@ -276,7 +302,7 @@ class SudokuRecursiveSolver5:
         y = box_y_num
         block_candidate_list = np.reshape(self.candidate_list[x * 3: x * 3 + 3, y * 3: y * 3 + 3], (1, 9))[0]
 
-        print("Box-row: Box (" + str(x) + ", " + str(y) + ") sub row " + str(sub_row_num) + " number: " + str(candidate))
+        print("B-R R: Box (" + str(x) + ", " + str(y) + ") sub row " + str(sub_row_num) + " number: " + str(candidate))
 
         for k, cell in enumerate(block_candidate_list):
             if k not in avoid_cells:
@@ -287,16 +313,16 @@ class SudokuRecursiveSolver5:
     def solve_box_line_reduction_col(self):
         for i, col in enumerate(self.candidate_list.transpose()):
             for num in binary_rep:
-                col_reps = 0b0
+                c_reps = 0b0
                 for candidate in col:
-                    col_reps = col_reps << 1
+                    c_reps = c_reps << 1
                     if candidate & num > 0:
-                        col_reps = col_reps | 0b1
-                if col_reps == 0b110000000 or col_reps == 0b111000000 or col_reps == 0b011000000 or col_reps == 0b101000000:
+                        c_reps = c_reps | 0b1
+                if c_reps == 0b110000000 or c_reps == 0b111000000 or c_reps == 0b011000000 or c_reps == 0b101000000:
                     self.eliminate_box_col(i, num, 0)
-                elif col_reps == 0b000110000 or col_reps == 0b000111000 or col_reps == 0b000011000 or col_reps == 0b000101000:
+                elif c_reps == 0b000110000 or c_reps == 0b000111000 or c_reps == 0b000011000 or c_reps == 0b000101000:
                     self.eliminate_box_col(i, num, 1)
-                elif col_reps == 0b000000110 or col_reps == 0b000000111 or col_reps == 0b000000011 or col_reps == 0b000000101:
+                elif c_reps == 0b000000110 or c_reps == 0b000000111 or c_reps == 0b000000011 or c_reps == 0b000000101:
                     self.eliminate_box_col(i, num, 2)
         return
 
@@ -307,13 +333,17 @@ class SudokuRecursiveSolver5:
         y = col_num // 3
         block_candidate_list = np.reshape(self.candidate_list[x * 3: x * 3 + 3, y * 3: y * 3 + 3], (1, 9))[0]
 
-        print("Box-col: Box (" + str(x) + ", " + str(y) + ") sub col " + str(sub_col_num) + " number: " + str(candidate))
+        print("B-C R: Box (" + str(x) + ", " + str(y) + ") sub col " + str(sub_col_num) + " number: " + str(candidate))
 
         for k, cell in enumerate(block_candidate_list):
             if k not in avoid_cells:
                 block_candidate_list[k] = block_candidate_list[k] & (~candidate & 0b111111111)
             self.candidate_list[x * 3: x * 3 + 3, y * 3: y * 3 + 3] = np.reshape(block_candidate_list, (3, 3))
         return
+
+###################################################################################################
+###################################################################################################
+###################################################################################################
 
     def solve_x_sword_jelly(self):
         candidate_list_copy = self.candidate_list.copy()
@@ -348,7 +378,8 @@ class SudokuRecursiveSolver5:
                     if bin(base).count("1") == hidden_rate:
                         col_cells = base
                         row_cells = comb
-                        print("Found X Wing size " + str(hidden_rate) + " for num " + str(num) + " in rows " + str(row_cells) + " in cols " + str(format(base, '09b')))
+                        print("Found X Wing size " + str(hidden_rate) + " for num " + str(num) + " in rows " +
+                              str(row_cells) + " in cols " + str(format(base, '09b')))
                         break
 
                 if col_cells is not None and row_cells is not None:
@@ -385,7 +416,8 @@ class SudokuRecursiveSolver5:
                     if bin(base).count("1") == hidden_rate:
                         row_cells = base
                         col_cells = comb
-                        print("Found X Wing size " + str(hidden_rate) + " for num " + str(num) + " in cols " + str(col_cells) + " in rows " + str(format(base, '09b')))
+                        print("Found X Wing size " + str(hidden_rate) + " for num " + str(num) + " in cols " +
+                              str(col_cells) + " in rows " + str(format(base, '09b')))
                         break
 
                 if row_cells is not None and col_cells is not None:
@@ -395,8 +427,95 @@ class SudokuRecursiveSolver5:
                                 if j not in col_cells:
                                     self.candidate_list[i][j] = self.candidate_list[i][j] & (~num & 0b111111111)
 
+
+###################################################################################################
+###################################################################################################
+###################################################################################################
+
+    def convert_board_to_string_list(self):
+
+        self.row_list = []
+        self.col_list = []
+        self.block_list = ["", "", "", "", "", "", "", "", ""]
+        self.candidate_string_list = [[""] * 9] * 9
+
+        for i in range(9):
+            row = ""
+            col = ""
+            for j in range(9):
+                row += str(int(self.board[i][j]))
+                col += str(int(self.board[j][i]))
+            self.row_list.append(row)
+            self.col_list.append(col)
+
+        for i in range(9):
+            for j in range(9):
+                block = 3 * (i // 3) + (j // 3)
+                self.block_list[block] += str(int(self.board[i][j]))
+
+        for i in range(9):
+            self.candidate_string_list[i] = []
+            for j in range(9):
+                self.candidate_string_list[i].append(binary_string_to_candidates(self.candidate_list[i][j]))
+
+    def insert_candidate_into_lists(self, x, y, candidate):
+        b = 3 * (x // 3) + (y // 3)
+        p = (x % 3) * 3 + (y % 3)
+        self.row_list[x] = self.row_list[x][:y] + candidate + self.row_list[x][y + 1:]
+        self.col_list[y] = self.col_list[y][:x] + candidate + self.col_list[y][x + 1:]
+        self.block_list[b] = self.block_list[b][:p] + candidate + self.block_list[b][p + 1:]
+
+    def recursive_has_valid_sudoku_constraints(self, x, y, candidate):
+
+        # Checks that the rows are valid
+        if candidate in self.row_list[x]:
+            return False
+
+        # Checks that the column are valid
+        if candidate in self.col_list[y]:
+            return False
+
+        # Checks that the blocks are valid
+        block_num = 3 * (x // 3) + (y // 3)
+        if candidate in self.block_list[block_num]:
+            return False
+
+        return True
+
+    def recursive_is_valid_board(self, x, y, candidate):
+
+        if candidate == -1:
+            return True
+
+        if not self.recursive_has_valid_sudoku_constraints(x, y, candidate):
+            return False
+
+        self.insert_candidate_into_lists(x, y, candidate)
+
+        return True
+
+    def recursive_solve(self, x, y, candidate):
+
+        if not self.recursive_is_valid_board(x, y, candidate):
+            return None
+
+        for i in range(self.rows):
+            for j in range(self.cols):
+
+                if self.row_list[i][j] != '0':
+                    continue
+
+                for candidate in self.candidate_string_list[i][j]:
+                    if self.recursive_solve(i, j, candidate) is not None:
+                        return True
+                self.insert_candidate_into_lists(i, j, '0')
+                return None
+
+        return True
+
     def solve_sudoku(self):
         start = time.time()
+        is_using_recursion = False
         self.get_candidate_list()
         while np.count_nonzero(self.board) < 81:
             if self.solve_naked_singles():
@@ -410,7 +529,14 @@ class SudokuRecursiveSolver5:
             elif self.solve_x_sword_jelly():
                 continue
             else:
+                is_using_recursion = True
+                self.convert_board_to_string_list()
+                if self.recursive_solve(0, 0, -1):
+                    for i, row in enumerate(self.row_list):
+                        for j, value in enumerate(row):
+                            self.solution[i][j] = int(value)
                 break
+        if not is_using_recursion:
+            self.solution = self.board.copy()
         print(time.time() - start)
         return
-

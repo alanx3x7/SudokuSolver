@@ -40,7 +40,21 @@ def test_with_board():
 
 if __name__ == "__main__":
     solver = SudokuRecursiveSolver5()
-    solver.load_board(board[0])
-    solver.solve_sudoku()
-    print(solver.board)
+    full_start = time.time()
+    for i in range(9):
+        solver.load_board(board[i])
+        solver.solve_sudoku()
+        print(solver.solution)
+    print("Total time to solve using v5")
+    print(time.time() - full_start)
+
+    solver3 = SudokuRecursiveSolver3()
+    full_start3 = time.time()
+    for i in range(9):
+        print("Solving board number " + str(i))
+        solver3.load_board(board[i])
+        solver3.solve_sudoku()
+        print(solver3.solution)
+    print("Total time to solve using v3")
+    print(time.time() - full_start3)
 
