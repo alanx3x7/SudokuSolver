@@ -19,13 +19,13 @@ another sudoku puzzle.
 </p>
 
 <br />
-<br />
 
 ___
 ### Demo
 
 
 <img align="left" src=data/SudokuSolverReadMe_Fill_Board.gif width="324" height="297"/>
+<br />
 <img align="left" src=data/SudokuSolverReadMe_Invalid_Board.gif width="324" height="297"/>
 <br />
 <br />
