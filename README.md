@@ -1,6 +1,6 @@
 # Sudoku Solver
 
-<img align="right" src=data/SudokuSolverReadMe_Valid_Board.gif width="242" height="242"/>
+<img align="right" src=data/SudokuSolverReadMe_Valid_Board.gif width="360" height="329"/>
 
 The Sudoku Solver is a Python GUI App that automatically reads the contents of a sudoku on the screen of the user,
 and solves that sudoku using a mixture of both heuristic approaches and recursive bifurcations. To use, drag the GUI
@@ -14,7 +14,6 @@ another sudoku puzzle.
 
 ### Demo
 
-<img align="right" src=data/SudokuSolverReadMe_Valid_Board.gif width="242" height="242"/>
 
 Show a valid Board
 
