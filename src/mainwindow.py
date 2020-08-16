@@ -76,14 +76,17 @@ class SudokuSolver(QWidget):
 
         self.clear_button = QtWidgets.QPushButton('Clear', self)
         self.clear_button.clicked.connect(self.button_clear_clicked)
+        self.clear_button.setEnabled(True)
         self.button_layout.addWidget(self.clear_button)
 
         self.solve_button = QtWidgets.QPushButton('Solve', self)
         self.solve_button.clicked.connect(self.button_solve_clicked)
+        self.solve_button.setEnabled(True)
         self.button_layout.addWidget(self.solve_button)
 
         self.fill_button = QtWidgets.QPushButton('Fill', self)
         self.fill_button.clicked.connect(self.button_fill_clicked)
+        self.fill_button.setEnabled(False)
         self.button_layout.addWidget(self.fill_button)
 
         self.loading_label = QtWidgets.QLabel(self)
@@ -192,17 +195,23 @@ class SudokuSolver(QWidget):
         self.solver.load_board(self.reader.game_board)
         has_solution = self.solver.solve_sudoku()
         self.capture_widget.valid_board(has_solution)
+        self.fill_button.setEnabled(has_solution)
         self.grid_values = self.solver.solution
+        return has_solution
 
     def button_solve_clicked(self):
         self.get_sudoku_board_from_screen()
-        self.solve_loaded_sudoku_board()
+        self.solve_button.setEnabled(False)
+        has_solution = self.solve_loaded_sudoku_board()
         self.populate_grid()
         self.stack_layer = 0
         self.sudoku_image.clear()
         self.main_stack.setCurrentIndex(self.stack_layer)
 
-        self.status_text.setText('Solution to sudoku puzzle')
+        if has_solution:
+            self.status_text.setText('Solution to sudoku puzzle')
+        else:
+            self.status_text.setText('Invalid sudoku board; no solution available')
         QApplication.processEvents()
 
     def button_clear_clicked(self):
@@ -212,6 +221,8 @@ class SudokuSolver(QWidget):
         self.image_corner_x = None
         self.image_corner_y = None
         self.screen_capture_enabled = True
+        self.solve_button.setEnabled(True)
+        self.fill_button.setEnabled(False)
         self.updateMask()
         self.status_text.setText('Please position window over sudoku on screen!')
 
