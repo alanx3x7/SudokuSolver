@@ -27,7 +27,6 @@ ___
 <img align="left" src=data/SudokuSolverReadMe_Fill_Board.gif width="324" height="297"/>
 <br />
 <br />
-<br />
 <p align="justify">
 If a valid solution has been found, then the Sudoku puzzle shown in the GUI will have a green border. Once the solution
 is displayed, the 'Fill' button will also be activated. When clicked on, the 'Fill' button will automatically take 
@@ -38,25 +37,9 @@ in between pressing the 'Solve' button and the 'Fill' button, as the app remembe
 screen when the sudoku puzzle is read. The GUI itself can be moved around, however.
 </p>
 
-<br />
 <br />
 <br />
 <img align="left" src=data/SudokuSolverReadMe_Invalid_Board.gif width="324" height="297"/>
-<br />
-<br />
-<p align="justify">
-If a valid solution has been found, then the Sudoku puzzle shown in the GUI will have a green border. Once the solution
-is displayed, the 'Fill' button will also be activated. When clicked on, the 'Fill' button will automatically take 
-control of the mouse and keyboard of the device, and start entering the digits of the solution into the sudoku puzzle
-on screen. For this to work, ensure that the sudoku puzzle on screen can be filled by mouse clicks to select each cell
-and keyboard presses of the relevant number. Ensure that the positioning of the sudoku puzzle on screen does not change
-in between pressing the 'Solve' button and the 'Fill' button, as the app remembers the location of the sudoku puzzle on
-screen when the sudoku puzzle is read. The GUI itself can be moved around, however.
-</p>
-
-
-<br />
-<br />
 <br />
 <p align="justify">
 If an invalid sudoku board is read in, then the solver will be unable to find a solution. This will cause it to display
@@ -69,6 +52,8 @@ GUI corresponding. If that doesn't help, please let me know - the OCR isn't the 
 dictionary of common mis-recognitions that I use to replace instances where the OCR doesn't recognize the digit
 correctly.
 </p>
+
+<br />
 
 ___
 ### Theory
