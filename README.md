@@ -26,7 +26,6 @@ ___
 
 <img align="left" src=data/SudokuSolverReadMe_Fill_Board.gif width="324" height="297"/>
 <br />
-<br />
 <p align="justify">
 If a valid solution has been found, then the Sudoku puzzle shown in the GUI will have a green border. Once the solution
 is displayed, the 'Fill' button will also be activated. When clicked on, the 'Fill' button will automatically take 
@@ -40,7 +39,6 @@ screen when the sudoku puzzle is read. The GUI itself can be moved around, howev
 <br />
 <br />
 <img align="left" src=data/SudokuSolverReadMe_Invalid_Board.gif width="324" height="297"/>
-<br />
 <p align="justify">
 If an invalid sudoku board is read in, then the solver will be unable to find a solution. This will cause it to display
 the sudoku puzzle that was read in, with a red border, to indicate invalidity. The 'Fill' button is disabled in this
