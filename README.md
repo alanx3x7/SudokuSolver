@@ -146,6 +146,10 @@ ___
 - PyTesseract
 - Imutils
 
+For Windows users, there is a .exe file within the dist folder that runs the completed GUI. Because it is packaged into
+a single .exe file, starting the program takes around 20 seconds. Please be patient after double clicking it for it to
+load.
+
 ___
 ### Future Work
 - Currently only solves normal 3x3 sudoku boards, hence will be trying to add functionality that helps solves puzzles
