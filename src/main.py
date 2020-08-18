@@ -6,11 +6,11 @@ from PyQt5.QtWidgets import QApplication, QWidget
 from mainwindow import SudokuSolver
 
 
-# Set the colour palette of the UI
-# Defaults to a dark mode configuration
-#   @param mode: The mode to which the palette of the GUI should be set to
-#   @return palette: The palette with which to apply on the GUI
 def set_colour_palette(mode="dark mode"):
+    """ Set the colour palette of the UI. Defaults to a dark mode configuration
+        :param mode: The mode to which the palette of the GUI should be set to [string]
+        :return: The palette with which to apply on the GUI [QPalette]
+    """
 
     palette = QPalette()
     palette.setColor(QPalette.Window, QColor(53, 53, 53))           # Window colour
@@ -30,8 +30,8 @@ def set_colour_palette(mode="dark mode"):
     return palette
 
 
-# Main function that runs the QApplication
 def main():
+    """ Main function that runs the QApplication """
 
     # Creates the application GUI object
     app = QApplication(sys.argv)

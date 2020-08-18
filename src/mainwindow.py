@@ -18,13 +18,16 @@ from SudokuScreenWriter import SudokuScreenWriter
 from SudokuRecursiveSolver import SudokuRecursiveSolver
 
 
-# SudokuSolver QWidget that is the main window of the application
 class SudokuSolver(QWidget):
+    """ SudokuSolver QWidget that is the main window of the application """
 
     # To keep track of whether the mask has been initialized or not
     dirty = True
 
     def __init__(self, parent=None):
+        """ Constructor
+            :param parent: Parent of this widget
+        """
         super(SudokuSolver, self).__init__(parent)
 
         # Creates the SudokuScreenReader, SudokuScreenWriter, and SudokuRecursiveSolver objects
@@ -66,8 +69,10 @@ class SudokuSolver(QWidget):
 
         self.show()
 
-    # Initialize the GUI by placing the objects in the correct positions
     def initUI(self):
+        """ Initialize the GUI by placing the objects in the correct positions
+            :return: None
+        """
 
         # Create the main layout and sets the margins
         self.main_layout = QtWidgets.QVBoxLayout()
@@ -124,8 +129,11 @@ class SudokuSolver(QWidget):
 
         self.main_layout.addLayout(self.button_layout)
 
-    # Update the mask on the GUI to allow a see-through window in the GUI for screen capture for the SudokuScreenReader
     def updateMask(self):
+        """ Update the mask on the GUI to allow a see-through window in the GUI for screen capture for
+            the SudokuScreenReader
+            :return: None
+        """
         # Get the GUI frame and capture widget geometries
         windowRect = self.geometry()
         captureRect = self.main_stack.geometry()
@@ -150,8 +158,11 @@ class SudokuSolver(QWidget):
         # Set the mask
         self.setMask(region)
 
-    # On every update call if something in the GUI is changed
     def paintEvent(self, event):
+        """ On every update call if something in the GUI is changed
+            :param event: Event handler that calls this function [event]
+            :return: None
+        """
         super(SudokuSolver, self).paintEvent(event)
 
         # Since there is nothing to update the paintEvent of this widget, only do this once
@@ -159,8 +170,11 @@ class SudokuSolver(QWidget):
             self.updateMask()
             self.dirty = False
 
-    # Called whenever the window is resized
     def resizeEvent(self, event):
+        """ Called whenever the window is resized
+            :param event: Event handler that calls this function [event]
+            :return: None
+        """
         super(SudokuSolver, self).resizeEvent(event)
 
         # Move the loading label to the center of the capture widget whenever the screen is resized
@@ -171,14 +185,17 @@ class SudokuSolver(QWidget):
         if not self.dirty:
             self.updateMask()
 
-    # Displays a screenshot of the sudoku puzzle and a loading message when SudokuScreenReader is reading the digits
-    # This is done because the SudokuScreenReader may take a few seconds, and this provides visual feedback to the user
-    #   @param x: The x coordinate of the top left corner of the capture widget
-    #   @param y: The y coordinate of the top left corner of the capture widget
-    #   @param w: The width of the capture widget
-    #   @param h: The height of the capture widget
-    #   @return open_cv_image: Screenshot of puzzle to pass to SudokuScreenReader to read the digits
     def display_loading_screen(self, x, y, w, h):
+        """ Displays a screenshot of the sudoku puzzle and a loading message when SudokuScreenReader is
+            reading the digits. This is done because the SudokuScreenReader may take a few seconds, and this
+            provides visual feedback to the user.
+        :param x: The x coordinate of the top left corner of the capture widget [int]
+        :param y: The y coordinate of the top left corner of the capture widget [int]
+        :param w: The width of the capture widget [int]
+        :param h: The height of the capture widget [int]
+        :return open_cv_image: Screenshot of puzzle to pass to SudokuScreenReader to read the digits
+                               [CV::Mat or 3-channel 2D numpy array of int]
+        """
 
         # Take a screenshot of what's in the window, and convert it to an OpenCV Image
         im1 = pyautogui.screenshot(region=(x, y, w, h))
@@ -211,8 +228,10 @@ class SudokuSolver(QWidget):
 
         return open_cv_image
 
-    # Uses the SudokuScreenReader object to read the sudoku puzzle digits from screen
     def get_sudoku_board_from_screen(self):
+        """ Use the SudokuScreenReader object to read the sudoku puzzle digits from screen
+            :return: None
+        """
 
         # Updates the status text for user feedback
         self.status_text.setText('Reading sudoku board from screen...')
@@ -234,8 +253,10 @@ class SudokuSolver(QWidget):
         open_cv_image = self.display_loading_screen(x, y, w, h)
         self.reader.get_sudoku_board(x, y, w, h, open_cv_image)
 
-    # Solves the sudoku puzzle that was read
     def solve_loaded_sudoku_board(self):
+        """ Solves the sudoku puzzle that was read
+            :return: None
+        """
 
         # Hide the loading label and update the status text for user feedback
         self.loading_label.setVisible(False)
@@ -255,8 +276,10 @@ class SudokuSolver(QWidget):
         self.grid_values = self.solver.solution
         return has_solution
 
-    # Called when the solve button is clicked
     def button_solve_clicked(self):
+        """ Called when the solve button is clicked
+            :return: None
+        """
 
         # Gets the sudoku board from the screen via screenshot
         self.get_sudoku_board_from_screen()
@@ -278,8 +301,10 @@ class SudokuSolver(QWidget):
             self.status_text.setText('Invalid sudoku board; no solution available')
         QApplication.processEvents()
 
-    # Called when the clear button is clicked
     def button_clear_clicked(self):
+        """ Called when the clear button is clicked
+            :return: None
+        """
 
         # Sets the stack to display the sudoku image widget
         self.stack_layer = 1
@@ -297,8 +322,10 @@ class SudokuSolver(QWidget):
         self.updateMask()
         self.status_text.setText('Please position window over sudoku on screen!')
 
-    # Called when the fill button is clicked
     def button_fill_clicked(self):
+        """ Called when the fill button is clicked
+            :return: None
+        """
 
         # If no image was taken then nothing happens
         if self.image_corner_x is None or self.image_corner_y is None:
@@ -319,8 +346,10 @@ class SudokuSolver(QWidget):
         # Simulate a clear button click
         self.button_clear_clicked()
 
-    # Populates the sudoku board widget with the values obtained from the SudokuRecursiveSolver
     def populate_grid(self):
+        """ Populates the sudoku board widget with the values obtained from the SudokuRecursiveSolver
+            :return: None
+        """
 
         # Only update if we have values to update with though
         if self.grid_values is not None:

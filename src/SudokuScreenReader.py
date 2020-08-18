@@ -10,10 +10,13 @@ import pytesseract
 pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
 
 
-# Class to get a screenshot of the sudoku puzzle on screen and read the digits within the grid
 class SudokuScreenReader:
+    """ Class to get a screenshot of the sudoku puzzle on screen and read the digits within the grid
+    """
 
     def __init__(self):
+        """ Constructor
+        """
 
         # Game image characteristics
         self.image_height = 0
@@ -40,14 +43,16 @@ class SudokuScreenReader:
         # Common mis-recognitions for pytesseract
         self.replacements = {'be': '5', 'Cc': 'C', 'Rg': '8', 'i': '1', '':'9'}
 
-    # Takes a screenshot of the screen with coordinates (x, y) and width and height (w, h)
-    # If an OpenCV image is passed as an argument, that is taken as the screenshot instead
-    #   @param x: The x coordinate of the top left corner of the screenshot location
-    #   @param y: The y coordinate of the top left corner of the screenshot location
-    #   @param w: The width of the area to be taken a screenshot of
-    #   @param h: The height of the area to be taken a screenshot of
-    #   @param open_cv_image: A OpenCV Mat of the screenshot
     def take_screenshot(self, x, y, w, h, open_cv_image=None):
+        """ Takes a screenshot of the screen with coordinates (x, y) and width and height (w, h)
+            If an OpenCV image is passed as an argument, that is taken as the screenshot instead
+            :param x: The x coordinate of the top left corner of the screenshot location [int]
+            :param y: The y coordinate of the top left corner of the screenshot location [int]
+            :param w: The width of the area to be taken a screenshot of [int]
+            :param h: The height of the area to be taken a screenshot of [int]
+            :param open_cv_image: A OpenCV Mat of the screenshot [CV::Mat or 3-channel 2D numpy array of int]
+            :return: None
+        """
 
         # If no screenshot image is passed in, take a screenshot at the specified location
         if open_cv_image is None:
@@ -58,8 +63,10 @@ class SudokuScreenReader:
         self.image = open_cv_image[:, :, ::-1].copy()
         self.get_image_characteristics()
 
-    # Gets the characteristics of the screenshot image taken
     def get_image_characteristics(self):
+        """ Gets the characteristics of the screenshot image taken
+            :return: None
+        """
         self.image_height, self.image_width, self.image_channels = self.image.shape
 
         # Estimate the cell size to be around a ninth of the width of the screenshot area
@@ -70,8 +77,10 @@ class SudokuScreenReader:
         self.min_cell_size = int(self.image_width / 20 * self.image_width / 20)
         self.max_cell_size = int(self.image_width / 9 * self.image_width / 9)
 
-    # Gets the contours of the image to find the location of the lines
     def find_original_contours(self):
+        """ Gets the contours of the image to find the location of the lines
+            :return: None
+        """
 
         # Convert to gray, threshold and invert the image. Also save a thresholded but non-inverted image copy
         gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
@@ -89,8 +98,11 @@ class SudokuScreenReader:
             if area < self.min_cell_size:
                 cv2.drawContours(self.thresh_invert, [block], -1, (0, 0, 0), -1)
 
-    # We know the lines of the grid should be straight, so we apply morphological operations to make them straight
     def fix_straight_lines(self):
+        """ Apply binary closing to straighten out grid lines within the image
+            We can do this because we know that the lines of the grid should be straight
+            :return: None
+        """
 
         # Creates a vertical 1x5 kernel and applies binary closing based on that kernel
         vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 5))
@@ -100,8 +112,11 @@ class SudokuScreenReader:
         horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 1))
         self.thresh_invert = cv2.morphologyEx(self.thresh_invert, cv2.MORPH_CLOSE, horizontal_kernel, iterations=4)
 
-    # We re-take the contours to find the corrected contour locations of the image and sort them top-down, left-right
     def sort_filtered_contours(self):
+        """ Re-finds the contours in the corrected image and sorts them top-down, left-right
+            Each contour should correspond to a cell in the sudoku puzzle
+            :return: None
+        """
 
         # Get the contours again
         invert = 255 - self.thresh_invert
@@ -130,8 +145,10 @@ class SudokuScreenReader:
                 self.game_board_contours.append(full_sorted_contours)
                 row = []
 
-    # Use the OCR to read each digit from the sudoku board
     def read_board_values(self):
+        """ Use the OCR to read each digit from the sudoku board
+            :return: None
+        """
 
         # Iterate through each contour/cell
         for row in self.game_board_contours:
@@ -157,23 +174,34 @@ class SudokuScreenReader:
                     board_row.append(character)
             self.game_board.append(board_row)
 
-    # Since the OCR outputs strings, we convert these strings to int number representations
     def convert_to_numbers(self):
+        """ Converts OCR string output into int representation
+            :return: None
+        """
         for i, row in enumerate(self.game_board):
             for j, character in enumerate(row):
                 if character != 0 and character.isdigit():
                     self.game_board[i][j] = int(character)
 
-    # We do this to make sure everything's empty before we try to process the next image
     def clear_for_new_board(self):
+        """ Clears member variables to process the next image
+            :return: None
+        """
         self.game_board = []
         self.good_contours = []
         self.game_board_contours = []
 
-    # Main function to help with functionality and usage of the class object
-    # Clears old data, takes the screenshot, and processes the image with OCR to find and convert the digits in the
-    # sudoku board into integers and saves those into the game_board member variable
     def get_sudoku_board(self, x, y, w, h, open_cv_image=None):
+        """ Main function to help with functionality and usage of the class object. Clears old data, takes the
+            screenshot, and processes the image with OCR to find and convert the digits in the sudoku board into
+            integers and saves those into the game_board member variable
+            :param x: x coordinate of the capture widget/location of screenshot [int]
+            :param y: y coordinate of the capture widget/location of screenshot [int]
+            :param w: width of the capture widget/screenshot [int]
+            :param h: height of the capture widget/screenshot [int]
+            :param open_cv_image: A screenshot of the board [CV::Mat object or 3-channel 2D numpy array of int]
+            :return: None
+        """
         self.clear_for_new_board()
         self.take_screenshot(x, y, w, h, open_cv_image)
         self.find_original_contours()

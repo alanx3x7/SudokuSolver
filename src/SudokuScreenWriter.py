@@ -7,10 +7,12 @@ import numpy as np
 import pyautogui
 
 
-# Class to automatically write in the solution of the sudoku solver to the sudoku puzzle on screen
 class SudokuScreenWriter:
+    """ Class to automatically write in the solution of the sudoku solver to the sudoku puzzle on screen
+    """
 
     def __init__(self):
+        """ Constructor """
 
         # Game image characteristics
         self.image_start_x = None
@@ -19,19 +21,23 @@ class SudokuScreenWriter:
         self.game_board_contours = None
         self.game_board_centers = None
 
-    # Load the solution of the sudoku
-    #   @param x: The x coordinate of the top left of the screenshot location for the sudoku puzzle
-    #   @param y: The y coordinate of the top left of the screenshot location for the sudoku puzzle
-    #   @param solution: The solution to the sudoku puzzle in a 2D numpy array
-    #   @param positions: The list of contours for each cell in the sudoku puzzle
     def load_solution_board(self, x, y, solution, positions):
+        """ Load the solution of the sudoku
+            :param x: The x coordinate of the top left of the screenshot location for the sudoku puzzle [int]
+            :param y: The y coordinate of the top left of the screenshot location for the sudoku puzzle [int]
+            :param solution: The solution to the sudoku puzzle [2D numpy array of int]
+            :param positions: The list of contours for each cell in the sudoku puzzle [list of contours]
+            :return: None
+        """
         self.image_start_x = x
         self.image_start_y = y
         self.solution_board = solution.copy()
         self.game_board_contours = positions
 
-    # Computes the centers of each cell in the sudoku puzzle on the screen via the contours
     def find_game_board_centers(self):
+        """ Computes the centers of each cell in the sudoku puzzle on the screen via the contours
+            :return: None
+        """
         self.game_board_centers = []
 
         # Goes through every contour as each contour corresponds to a cell in the sudoku puzzle
@@ -52,8 +58,10 @@ class SudokuScreenWriter:
                 game_board_center_row.append([int(center_x + self.image_start_x), int(center_y + self.image_start_y)])
             self.game_board_centers.append(game_board_center_row)
 
-    # Writes the sudoku solution into the on-screen sudoku puzzle
     def write_in_sudoku(self):
+        """ Writes the sudoku solution into the on-screen sudoku puzzle
+            :return: None
+        """
 
         # Goes through all cells
         for i, row in enumerate(self.game_board_centers):
