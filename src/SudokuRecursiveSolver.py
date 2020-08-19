@@ -4,18 +4,24 @@ import time
 import numpy as np
 from itertools import combinations
 
-
+# Mapping from binary numbers to decimal numbers
 binary_to_real = {
     1: 9,       2: 8,       4: 7,
     8: 6,       16: 5,      32: 4,
     64: 3,      128: 2,     256: 1
 }
 
+# List of binary numbers
 binary_rep = [0b100000000, 0b010000000, 0b001000000, 0b000100000, 0b000010000, 0b000001000, 0b000000100,
               0b000000010, 0b000000001]
 
 
 def binary_string_to_candidates(binary):
+    """ Converts a binary number to a concatenated string of decimal numbers.
+        For example, 0b001011001 becomes '3569'
+        :param binary: Binary number [int]
+        :return candidates: Concatenated string list [string]
+    """
     candidates = ""
     for i, rep in enumerate(binary_rep):
         if binary & rep > 0:
@@ -24,30 +30,60 @@ def binary_string_to_candidates(binary):
 
 
 class SudokuRecursiveSolver:
+    """ Class that performs the sudoku solving.
+        Currently uses v5 of the sudoku_base_solvers.
+        Uses heuristic methods first (with binary representation), then recursion/bifurcation over the remaining
+        candidates for each cell (with string representation)
+    """
 
     def __init__(self):
-        self.rows = 0
-        self.cols = 0
-        self.block_size = 0
-        self.blocks_across = 0
+        """ Constructor """
 
-        self.board = None
-        self.solution = None
-        self.row_list = None
-        self.col_list = None
-        self.block_list = None
-        self.candidate_list = None
-        self.candidate_string_list = None
+        # Board parameters
+        self.rows = 0                           # Number of rows in the board, should be 9
+        self.cols = 0                           # Number of cols in the board, should be 9
+        self.block_size = 0                     # Size of each block, should be 3 (assumes square blocks)
+        self.blocks_across = 0                  # Number of blocks across the board in one direction, should be 3
+
+        # Main containers for the board state
+        self.board = None                       # Current board (used as initial and for recursion/bifurcation)
+        self.solution = None                    # Solved board state
+
+        # Heuristic approach container
+        self.candidate_list = None              # Binary representation of candidates for each cell
+
+        # Recursion/bifurcation approach containers
+        self.row_list = None                    # List of cell values for each row in string representation
+        self.col_list = None                    # List of cell values for each col in string representation
+        self.block_list = None                  # List of block values for each block in string representation
+        self.candidate_string_list = None       # List of candidates for each cell in string representation
 
     def load_board(self, game_board, block_size=3):
+        """ Load the sudoku puzzle board and gets the board characteristics
+            :param game_board: The sudoku board state, with 0's as blanks [2D list of ints]
+            :param block_size: Size of a block, assuming square blocks [int]
+            :return: None
+        """
+
+        # Set up initial state of board and solution as the game_board
         self.board = np.array(game_board)
         self.solution = self.board.copy()
+
+        # Board should be 2D
         self.rows, self.cols = self.board.shape
         self.block_size = block_size
         self.blocks_across = int(self.rows / self.block_size)
+
+        # Initialize candidate list as empty
         self.candidate_list = np.zeros((self.rows, self.cols), dtype=int)
 
     def block_top_left(self, x, y):
+        """ Returns the (i, j) cell index of the top left cell of block (x, y)
+            :param x: The xth block in the vertical direction [int]
+            :param y: The yth block in the horizontal direction [int]
+            :return top_x: The index of the top left cell in the block in the vertical direction [int]
+            :return top_y: THe index of the top left cell in the block in the horizontal direction [int]
+        """
         top_x = (x // self.block_size) * self.blocks_across
         top_y = (y // self.block_size) * self.blocks_across
         return top_x, top_y
