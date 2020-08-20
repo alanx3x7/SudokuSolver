@@ -30,7 +30,7 @@ def test_with_screen():
 
 
 def test_with_board():
-    solver = SudokuRecursiveSolver3()
+    solver = SudokuRecursiveSolver5()
     for i in range(6):
         start = time.time()
         solver.load_board(board[i])
@@ -40,7 +40,7 @@ def test_with_board():
 
 
 if __name__ == "__main__":
-    solver = SudokuRecursiveSolver4()
+    solver = SudokuRecursiveSolver5()
     v4_times = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     for i in range(9):
         time_start = time.time()

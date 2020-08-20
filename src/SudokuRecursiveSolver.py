@@ -88,7 +88,39 @@ class SudokuRecursiveSolver:
         top_y = (y // self.block_size) * self.blocks_across
         return top_x, top_y
 
+###################################################################################################
+###################################################################################################
+###################################################################################################
+    """ 
+        Set up the board for the heuristic solver for the SudokuSolver.
+
+        Heuristics means that a series of logical deductions are used to figure out which value
+        goes into each cell. No guess work is done here, and all of the techniques used are 
+        established techniques used to solve sudoku puzzles. In essence, these techniques serve
+        to find groups of cells that can only contain a certain subset of values, which in turn
+        restricts those values from appearing in other cells that are related.
+        
+        For the heuristic solver, because we want to be able to find groups of cells that contain
+        similar candidates, we opt for a binary representation approach. That is, each value in
+        the candidate list corresponds to the possible candidates/values that the cell can take.
+        They are represented in the form 0bxxxxxxxxx, where x is 1 if that value is a candidate 
+        for this cell, and 0 if that value cannot be a candidate, from 1 to 9 in MSB order.
+        
+        In other words, say for example cell (1, 3) has candidates 1, 3, 4, 7, 8. Then, in cell
+        (1, 3) (which is index (0, 2)) in candidate list is 0b101100110. We see the first, third,
+        fourth, seventh, and eighth bits counting from the most significant bit are set to 1.
+    """
+
     def has_valid_sudoku_constraints(self, x, y, candidate):
+        """ Checks if this value is a valid candidate for cell (x, y).
+            Since this is a naive check, it simply checks whether the value of that candidate already appears
+            in a cell in the same row, column, or block as cell (x, y). If such a value exists, it violates
+            the sudoku constraints and that value can not be a candidate for this cell.
+            :param x: The x coordinate of the cell in question [int]
+            :param y: The y coordinate of the cell in question [int]
+            :param candidate: The value of the candidate [int]
+            :return bool: True if it is a candidate, false if that candidate cannot go there
+        """
 
         # Checks that the rows are valid
         if candidate in self.board[x, :]:
@@ -107,60 +139,102 @@ class SudokuRecursiveSolver:
         return True
 
     def is_valid_board(self, x, y, candidate):
+        """ Checks that whether the board will meet sudoku constraints if candidate goes into cell (x, y)
+            Currently only checks for normal sudoku constraints. Will be adding knight's move or other constraints
+            in the future.
+            :param x: The x coordinate of the cell in question [int]
+            :param y: The y coordinate of the cell in question [int]
+            :param candidate: The value of the candidate [int]
+            :return bool: True if sudoku constraints are met when candidate goes into cell (x, y). False otherwise.
+        """
 
+        # We ignore if candidate is -1. This is just used for entry into the recursion
         if candidate == -1:
             return True
 
+        # Checks with normal sudoku constraints
         if not self.has_valid_sudoku_constraints(x, y, candidate):
             return False
 
         return True
 
     def get_candidate_list(self):
+        """ Creates the candidate list for each cell on in the board. If the cell is already filled, the candidate
+            list is composed of only 0's.
+        """
 
+        # Loops through each cell on the board
         for i in range(self.rows):
             for j in range(self.cols):
 
                 valid_candidates = 0b0
+
+                # We skip this cell if it already has a value
                 if self.board[i][j] == 0:
+
+                    # We go through all numbers, and if they yield a valid sudoku puzzle, the candidate list is updated
+                    # accordingly (that is, if x put into cell (i, j) gives a valid sudoku, the xth bit of the candidate
+                    # list binary number is set to 1. It is set to 0 otherwise.
                     for candidate in range(1, 10):
                         valid_candidates = valid_candidates << 1
                         if self.is_valid_board(i, j, candidate):
                             valid_candidates += 0b1
 
+                # Save the candidates
                 self.candidate_list[i][j] = valid_candidates
 
-###################################################################################################
-###################################################################################################
-###################################################################################################
+    """ Heuristic: Naked Singles """
+
+    def solve_naked_singles(self):
+        """ Finds all naked singles from the candidate list and update the board and candidate list accordingly
+            by placing those values into those cells.
+            :return modified_board: True if the board was updated, false otherwise
+        """
+        modified_board = False
+
+        # Loops through each cell
+        for i in range(self.rows):
+            for j in range(self.cols):
+
+                # If there is only one possible candidate in that cell
+                if bin(self.candidate_list[i][j]).count("1") == 1:
+
+                    # Update the board by placing that value into that cell and update the candidate list
+                    self.insert_value_and_update_candidate_list(self.candidate_list[i][j], i, j)
+                    modified_board = True
+
+        # Return true if the board was updated, false otherwise.
+        return modified_board
 
     def insert_value_and_update_candidate_list(self, binary_value, x, y):
+        """ Inserts value into cell (x, y) in the board and update the candidate list accordingly
+            :param binary_value: The value to be inserted into the cell in binary format [int]
+            :param x: The x coordinate of the cell to be updated [int]
+            :param y: The y coordinate of the cell to be updated [int]
+            :return: None
+        """
+
+        # Since we want decimal numbers in the board, we find the decimal equivalent to the binary value
         decimal_value = binary_to_real[binary_value]
+
+        # Update the board with this value
         self.board[x][y] = decimal_value
 
+        # Remove this candidate from all other cells that share the same row as cell (x, y)
         for i, candidates in enumerate(self.candidate_list[x, :]):
             self.candidate_list[x, i] = candidates & (~binary_value & 0b111111111)
 
+        # Remove this candidate from all other cells that share the same column as cell (x, y)
         for j, candidates in enumerate(self.candidate_list[:, y]):
             self.candidate_list[j, y] = candidates & (~binary_value & 0b111111111)
 
+        # Remove this candidate from all other cells that share the same block as cell (x, y)
         top_x, top_y = self.block_top_left(x, y)
         for i in range(top_x, top_x + 3):
             for j in range(top_y, top_y + 3):
                 self.candidate_list[i, j] = self.candidate_list[i][j] & (~binary_value & 0b111111111)
 
-    def solve_naked_singles(self):
-        modified_board = False
-        for i in range(self.rows):
-            for j in range(self.cols):
-                if bin(self.candidate_list[i][j]).count("1") == 1:
-                    self.insert_value_and_update_candidate_list(self.candidate_list[i][j], i, j)
-                    modified_board = True
-        return modified_board
-
-###################################################################################################
-###################################################################################################
-###################################################################################################
+    """ Heuristic: Hidden Sets """
 
     def solve_hidden_sets(self):
         candidate_list_copy = self.candidate_list.copy()
