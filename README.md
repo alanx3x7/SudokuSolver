@@ -146,9 +146,10 @@ ___
 - PyTesseract
 - Imutils
 
-For Windows users, there is a .exe file within the dist folder that runs the completed GUI. Because it is packaged into
-a single .exe file, starting the program takes around 20 seconds. Please be patient after double clicking it for it to
-load.
+For Windows users, please see release v1.0. You can choose to download the application bundled in either one single
+file, SudokuSolver.exe (which takes around 15 seconds to launch every time), or download the distribution folder
+named SudokuSolver_Release_v1.0.zip, unzip, then run SudokuSolver.exe, which should take no more like 5 seconds to 
+launch.
 
 ___
 ### Future Work

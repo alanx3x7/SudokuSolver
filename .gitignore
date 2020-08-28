@@ -5,3 +5,4 @@ build/
 SudokuSolver.spec
 one_file/
 dist/
+*.zip
